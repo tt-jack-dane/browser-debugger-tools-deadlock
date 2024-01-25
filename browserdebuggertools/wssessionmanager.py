@@ -4,7 +4,7 @@ import logging
 import socket
 import time
 import collections
-from threading import Thread, Lock, Event
+from threading import Thread, RLock, Lock, Event
 
 from typing import Dict, Callable
 
@@ -172,6 +172,7 @@ class _WSMessageProducer(Thread):
         """ Checks if the message_producer hasn't crashed
             and that we still have a connection to the websocket.
         """
+        logging.warning("Performing Health Check")
         if self.is_alive():
             if self.blocked:
                 logging.warning("WS messaging thread appears to be blocked")
@@ -233,7 +234,7 @@ class WSSessionManager:
         self._events_access_lock = Lock()
 
         # Used to manage the health of the message producer
-        self._message_producer_lock = Lock()  # Lock making sure we don't create 2 ws connections
+        self._message_producer_lock = RLock()  # Lock making sure we don't create 2 ws connections
         self._last_not_ok = None
         self._message_producer_not_ok_count = 0
         self._send_queue = collections.deque()
